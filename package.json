@@ -1,0 +1,20 @@
+{
+  "name": "bim-keyboard-tools",
+  "version": "1.0.0",
+  "description": "Tools for keyboard",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tsecher/bim-keyboard-tools.git"
+  },
+  "keywords": [
+    "Keyboard",
+    "accessibility"
+  ],
+  "author": "tsecher <me@thomas-secher.fr> (https://holidev.thomas-secher.fr/)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tsecher/bim-keyboard-tools/issues"
+  },
+  "homepage": "https://github.com/tsecher/bim-keyboard-tools#readme"
+}
