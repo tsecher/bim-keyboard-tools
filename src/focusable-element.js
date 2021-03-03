@@ -8,7 +8,7 @@ export const FocusKey = {
 
 export class FocusableElement {
 
-  constructor(element, options) {
+  constructor(element, options = {}) {
     // Element.
     this.element = element;
 
@@ -150,7 +150,7 @@ export class FocusableElement {
  * Focus an element
  * @param item
  */
-export function focusElement(item){
+export function focusElement(item, options={}){
   if (typeof item.focusableElement === 'undefined') {
     item.focusableElement = new FocusableElement(item,options);
   }
