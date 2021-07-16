@@ -1,9 +1,12 @@
+import {findAncestor} from "../../../src/main/js/helpers/utils";
+
 export const FocusKey = {
   wrapperAttribute: 'wrapperAttribute',
   wrapperValueOpen: 'wrapperValueOpen',
   wrapperValueClose: 'wrapperValueClose',
   keyOpen: 'keyOpen',
   keyClose: 'keyClose',
+  preventDefault: 'preventDefault',
 }
 
 export class FocusableElement {
@@ -18,6 +21,10 @@ export class FocusableElement {
     // Init behaviors
     this.element.addEventListener('focus', evt => this.onFocus(evt))
     this.element.addEventListener('keydown', evt => this.onKeydown(evt))
+
+
+    // FocusOutCallback
+    this.focusOutCallback =  evt => this.onFocusOut(evt);
   }
 
   static getDefaultOptions() {
@@ -27,6 +34,7 @@ export class FocusableElement {
     defaultOptions[FocusKey.wrapperValueClose] = '0';
     defaultOptions[FocusKey.keyOpen] = ['ArrowDown'];
     defaultOptions[FocusKey.keyClose] = ['ArrowUp'];
+    defaultOptions[FocusKey.preventDefault] = false;
     return defaultOptions;
   }
 
@@ -47,10 +55,12 @@ export class FocusableElement {
    */
   onKeydown(evt) {
     const wrapper = this.getWrapper()
-
     if (wrapper) {
       if (this.option(FocusKey.keyOpen).includes(evt.key)) {
         this.enableFocus(wrapper);
+        if (this.option(FocusKey.preventDefault)) {
+          evt.preventDefault();
+        }
       } else if (this.option(FocusKey.keyClose).includes(evt.key)) {
         this.disableFocus();
       }
@@ -64,6 +74,9 @@ export class FocusableElement {
   enableFocus(wrapper) {
     wrapper = wrapper || this.getWrapper()
     wrapper.setAttribute(this.option(FocusKey.wrapperAttribute), this.option(FocusKey.wrapperValueOpen));
+
+    // Enable focus out istener.
+    document.querySelectorAll('*').forEach(item => item.addEventListener('focus', this.focusOutCallback))
   }
 
   /**
@@ -71,15 +84,21 @@ export class FocusableElement {
    *
    * If in an open wrapper, the focus will ne on the first focusable element of the wrapper
    */
-  disableFocus() {
+  disableFocus(force= true) {
     const wrapper = this.getOpenedWrapper()
     if (wrapper) {
       wrapper.setAttribute(this.option(FocusKey.wrapperAttribute), this.option(FocusKey.wrapperValueClose));
 
-      const firstFocusable = this.getFirstFocusable(wrapper);
-      if (firstFocusable) {
-        firstFocusable.focus();
+      // Enable focus out istener.
+      document.querySelectorAll('*').forEach(item => item.removeEventListener('focus', this.focusOutCallback))
+
+      if(force){
+        const firstFocusable = this.getFirstFocusable(wrapper);
+        if (firstFocusable) {
+          firstFocusable.focus();
+        }
       }
+
     }
   }
 
@@ -122,6 +141,15 @@ export class FocusableElement {
     return el;
   }
 
+  isAncestor(el, parent){
+    do{
+      el = el.parentElement;
+    }
+    while( el && el != parent )
+
+    return el==parent;
+  }
+
   /**
    * Return option value. ALl options if no key is passed.
    *
@@ -144,14 +172,25 @@ export class FocusableElement {
     wrapper = wrapper || this.getWrapper()
     return wrapper.querySelector(`.focusable`);
   }
+
+  /**
+   * Disable focus.
+   * @param evt
+   */
+  onFocusOut(evt) {
+    if( !evt.target || !this.isAncestor(evt.target, this.getWrapper())){
+      this.disableFocus(false);
+      evt.preventDefault();
+    }
+  }
 }
 
 /**
  * Focus an element
  * @param item
  */
-export function focusElement(item, options={}){
+export function focusElement(item, options = {}) {
   if (typeof item.focusableElement === 'undefined') {
-    item.focusableElement = new FocusableElement(item,options);
+    item.focusableElement = new FocusableElement(item, options);
   }
 }
